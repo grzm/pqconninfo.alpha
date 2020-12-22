@@ -43,42 +43,18 @@ isn't a PostgreSQL JDBC Driver-specific connection configurator.
 
 ** Release information
 *** [[https://maven.apache.org][Maven]]
-Add OSS Sonatype Snapshots to your repositories.
-#+begin_src xml
-<repositories>
-  <repository>
-    <id>oss-sonatype</id>
-    <name>oss-sonatype</name>
-    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    <snapshots>
-      <enabled>true</enabled>
-    </snapshots>
-  </repository>
-</repositories>
-#+end_src
-
 #+begin_src xml
 <dependency>
   <groupId>com.grzm</groupId>
   <artifactId>pqconninfo.alpha</artifactId>
-  <version>0.9-SNAPSHOT</version>
+  <version>0.7.0</version>
 </dependency>
 #+end_src
 
 *** Clojure [[https://clojure.org/guides/deps_and_cli][deps.edn]]
-Add the OSS Sonatype Snapshots to your project or user ~deps.edn~ file.
 #+begin_src clojure
-:mvn/repos {
-  "sonatype-snapshots" {:url "https://oss.sonatype.org/content/repositories/snapshots/"}
- }
+com.grzm/pqconninfo.alpha {:mvn/version "0.7.0"}
 #+end_src
-
-And the artifact to the ~:deps~ map.
-
-#+begin_src clojure
-com.grzm/pqconninfo.alpha {:mvn/version "0.9-SNAPSHOT"}
-#+end_src
-
 
 ** Usage
 *** Reading libpq client configuration
