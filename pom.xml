@@ -6,7 +6,7 @@
 
     <groupId>com.grzm</groupId>
     <artifactId>pqconninfo.alpha</artifactId>
-    <version>0.7-SNAPSHOT</version>
+    <version>0.7.0</version>
 
     <name>pqconninfo.alpha</name>
     <description>Collect libpq conninfo options from the system environment</description>
