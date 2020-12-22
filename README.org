@@ -164,7 +164,7 @@ to the revelent sections of their respective documentation.
 ** License
 © 2020 Michael Glaesemann
 
-This code is licensed under the MIT License (see LICENSE file for
+This code is licensed under the MIT License (see [[./LICENSE][LICENSE]] file for
 details), with exceptions noted in the source.
 
 This project contains code from the excellent [[https://github.com/brettwooldridge/HikariCP][Hikari-CP]] connection
