@@ -57,6 +57,9 @@ com.grzm/pqconninfo.alpha {:mvn/version "0.7.0"}
 #+end_src
 
 ** Usage
+
+[[https://grzm.github.io/pqconninfo.alpha/][API docs]]
+
 *** Reading libpq client configuration
 
 #+begin_src java
