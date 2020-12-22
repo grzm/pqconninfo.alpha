@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+ 
+<!DOCTYPE suppressions PUBLIC
+     "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+     "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+ 
+<suppressions>
+  <suppress checks="ParameterName"
+            files=".*\.java"/>
+
+  <suppress checks="MethodName"
+             files=".*\.java"/>
+
+  <suppress checks="HiddenField|VisibilityModifier"
+             files="JdbcConnectionParameter\.java|JdbcConnectionParameters.*\.java|JdbcElf\.java|MalformedServiceFileException\.java|PqConninfo.*\.java|PqSslmode\.java"/>
+
+  <suppress checks="LineLength"
+            files="EnumMapConninfoReader\.java"
+            lines="163" />
+
+  <suppress checks="MemberName"
+            files="JdbcConnectionParameters.*\.java" />
+
+  <suppress checks="LineLength|JavadocVariable"
+            files="JdbcConnectionParameter\.java"
+            lines="7-25" />
+
+  <suppress checks="JavadocVariable"
+            files="JdbcElf\.java"
+            lines="271-276,412-415,460-462,514-515"/>
+
+  <suppress checks="JavadocVariable"
+            files="JdbcConnectionParameters\.java"
+            lines="26-45,270-275,411-414,459-461,514-515"/>
+
+  <suppress checks="JavadocVariable"
+            files="Passfile\.java"
+            lines="17-29" />
+
+  <suppress checks="LineLength"
+            files="PqConninfo\.java"
+            lines="36-69" />
+
+  <suppress checks="JavadocVariable"
+            files="PqConninfoOption\.java"
+            lines="8-53" />
+
+  <suppress checks="JavadocVariable"
+            files="PqSslmode\.java"
+            lines="10-15" />
+
+  <!-- PropertyElf is lifted from Hikari-CP. Let's not mangle it too much. -->
+  <suppress checks="LineLength|MissingJavadocMethod"
+            files="PropertyElf.java"/>
+
+  <suppress checks="LineLength"
+            files="ServiceFile\.java"
+            lines="109-114" />
+
+</suppressions>

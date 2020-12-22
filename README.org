@@ -1,0 +1,192 @@
+#+STARTUP: showall
+* PQConninfo - Use PostgreSQL libpq conninfo with JDBC
+
+The pqconninfo library is a Java implementation of the portions of
+[[https://www.postgresql.org][PostgreSQL]]'s [[https://www.postgresql.org/docs/current/libpq.html][libpq C client library]] that collect connection options
+from the system for use in Java applications, such as with the
+[[https://jdbc.postgresql.org/download.html][PostgreSQL JDBC Driver]].
+
+pqconninfo reads the same [[https://www.postgresql.org/docs/current/static/libpq-envars.html][environment variables]], [[https://www.postgresql.org/docs/current/static/libpq-pgservice.html][connection service
+ files]], and [[https://www.postgresql.org/docs/current/static/libpq-pgpass.html][password files]] used by libpq. This includes common
+ enviroment variables such as ~PGDATABASE~ and ~PGUSER~, and also
+ ~PGSERVICEFILE~ and ~PGPASSFILE~. Connection service files (e.g.,
+ ~~/.pg_service.conf~) and password files (e.g., ~~/.pgpass~) are also
+ read, just like libpq clients such as [[https://www.postgresql.org/docs/current/app-psql.html][psql]].
+
+Not all libpq connection parameters make sense for JDBC, but those
+that do are used to create JDBC urls and connection properties
+suitable for creating [[https://jdbc.postgresql.org/documentation/head/connect.html][connections]] with the [[https://jdbc.postgresql.org/download.html][PostgreSQL JDBC Driver]].
+
+*Note*: While the functionality is largely here, the API and behavior
+may change as the code gets exercised in the wild. As such, I've
+marked the artifact and package names ~alpha~. Once it's stable,
+pqconninfo will be released sans ~alpha~. [[https://www.youtube.com/watch?v=oyLBGkS5ICk][Semantic versioning is
+broken.]]
+
+** Rationale
+The libpq C client library provides a number of methods to provide
+configuration data which can be used by any client that uses the libpq
+library. The PostgreSQL JDBC driver, implemented in Java, doesn't pick
+up the libpq client configuration by default. If you're using both
+libpq clients and JDBC, you need to use some bespoke method of client
+configuration if you want to share the a common client configuration
+source.
+
+pqconninfo is first a Java library that reads libpq client
+configuration and second a tool that translates the libpq client
+configuration into something that is useful for the PostgreSQL JDBC
+driver. Being able to read libpq configuration in Java means it can be
+used by any Java PostgreSQL client application, and the PostgreSQL
+JDBC driver is just one of these. As such, pqconninfo is useful
+independent of just one Java client application, and why pqconninfo
+isn't a PostgreSQL JDBC Driver-specific connection configurator.
+
+** Release information
+*** [[https://maven.apache.org][Maven]]
+Add OSS Sonatype Snapshots to your repositories.
+#+begin_src xml
+<repositories>
+  <repository>
+    <id>oss-sonatype</id>
+    <name>oss-sonatype</name>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+#+end_src
+
+#+begin_src xml
+<dependency>
+  <groupId>com.grzm</groupId>
+  <artifactId>pqconninfo.alpha</artifactId>
+  <version>0.9-SNAPSHOT</version>
+</dependency>
+#+end_src
+
+*** Clojure [[https://clojure.org/guides/deps_and_cli][deps.edn]]
+Add the OSS Sonatype Snapshots to your project or user ~deps.edn~ file.
+#+begin_src clojure
+:mvn/repos {
+  "sonatype-snapshots" {:url "https://oss.sonatype.org/content/repositories/snapshots/"}
+ }
+#+end_src
+
+And the artifact to the ~:deps~ map.
+
+#+begin_src clojure
+com.grzm/pqconninfo.alpha {:mvn/version "0.9-SNAPSHOT"}
+#+end_src
+
+
+** Usage
+*** Reading libpq client configuration
+
+#+begin_src java
+import com.grzm.pqconninfo.alpha.PqConninfo;
+import com.grzm.pqconninfo.alpha.PqConninfoOption;
+import com.grzm.pqconninfo.alpha.PqConninfoReader;
+import java.sqlConnection;
+import java.sql.DriverManager;
+import java.util.Properties;
+
+// Provide or override parameters fetched from the environment. This
+// is particularly useful for passfile password lookups.
+Properties initProps = new Properties() {{
+    setProperty("dbname", "some_database");
+    setProperty("user", "some_user");
+}};
+
+PqConninfo conninfo = PqConninfoReader.read(initProps);
+
+String host = conninfo.get(PqConninfoOption.HOST);
+String port = conninfo.get(PqConninfoOption.PORT);
+#+end_src
+
+*** PostgreSQL JDBC Driver connection parameters
+#+begin_src java
+import com.grzm.pqconninfo.alpha.jdbc.JdbcConnectionParameters;
+import com.grzm.pqconninfo.alpha.jdbc.JdbcConnectionParametersReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Properties;
+
+// ...
+
+JdbcConnectionParameters params = JdbcConnectionParametersReader.read();
+
+// Provide or override parameters fetched from the environment. This
+// is particularly useful for passfile password lookups.
+Properties initProps = new Properties() {{
+    setProperty("dbname", "some_database");
+    setProperty("user", "some_user");
+}};
+JdbcConnectionParameters params = JdbcConnectionParametersReader.read(initProps);
+
+String url = params.getUrl();
+Properties info = params.getInfo();
+Connection conn = DriverManager.getConnection(url, info);
+
+// If you want to include all parameters in the query string,
+String urlWithQueryString = params.getUrlWithQueryParameters();
+Connection conn = DriverManager.getConnection(urlWithParams);
+#+end_src
+
+** libpq and pqconninfo compatibility
+libpq is the reference implementation, and pqconninfo defers to how
+libpq works. If pqconninfo behaves differently from libpq in a
+meaningful way, it's a bug. A few allowances have been made (such as
+using 5432 as a default connection port and attempting to use
+[[https://www.postgresql.org/docs/current/app-pgconfig.html][pg_config]] to discover a PostgreSQL installation ~sysconfdir~), but those
+are open to revisiting if we find that causes issues with expected
+behavior.
+
+In addition, the pqconninfo library does not do any validation of the
+well-formedness of passfiles or connection service files (other than
+what it needs to do to read them) or whether connection parameter
+values are valid. If a file can be parsed by libpq for particular
+values, it should be parsable by pqconninfo and return the same
+values.
+
+** Connection parameter documentation
+The pgconninfo library intends to provide a simple and easy way to use
+libpq connection configuration with the PostgreSQL JDBC driver. When
+pqconninfo does not provide a faithful translation of libpq connection
+info to PostgreSQL JDBC connection parameters, that is a bug, and
+please report it.
+
+In the same vein as libpq compatibility, this library does not intend
+to include extensive or authoritative documentation of either libpq or
+PostgreSQL JDBC connection parameters and configuration. Please refer
+to the revelent sections of their respective documentation.
+
+ * [[https://www.postgresql.org/docs/current/libpq.html][The PostgreSQL libpq C library]], in particular
+   * [[https://www.postgresql.org/docs/current/libpq-envars.html][Environment Variables]]
+   * [[https://www.postgresql.org/docs/current/libpq-pgpass.html][The Password file]]
+   * [[https://www.postgresql.org/docs/current/libpq-pgservice.html][The Connection Service File]]
+     
+ * [[https://jdbc.postgresql.org/documentation/head/connect.html#connection-parameters][PostgreSQL JDBC Driver Connection Parameters]]
+     
+** Known issues
+ * The Windows implementation is incomplete and untested, as I don't
+   have access to a Windows system.
+ * Both libpq and the PostgreSQL JDBC driver support connection info
+   for multiple hosts. This library doesn't handle this yet.
+ * I've only confirmed testing with basic parameters such as host,
+   port, dbname, user, and password, so it's quite possible there are
+   issues with the libpq-to-PostgreSQL JDBC parameter translation.
+
+** Future work
+ * Add an feature to provide context provider chains rather than rely
+   on the hard-coded SystemContextFactory. This would allow
+   alternative system detection mechanisms.
+
+** License
+© 2020 Michael Glaesemann
+
+This code is licensed under the MIT License (see LICENSE file for
+details), with exceptions noted in the source.
+
+This project contains code from the excellent [[https://github.com/brettwooldridge/HikariCP][Hikari-CP]] connection
+pooler, which is licensed under the Apache-2.0 License.

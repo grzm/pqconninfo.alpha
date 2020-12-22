@@ -1,0 +1,52 @@
+digraph G {
+
+        node [shape=rect style=rounded]
+
+        subgraph PQ_cluster {
+        rank = same
+        PQsetdbLogin
+        PQconnectStart
+        PQconninfoParse
+        PQconnectStartParams
+        PQconndefaults
+        }
+
+        PQconnectStartParams -> conninfo_array_parse
+        PQconnectStartParams -> fillPGconn
+        PQconnectStartParams -> connectOptions2
+        PQconnectStartParams -> connectDBStart
+
+        PQconnectStart -> connectOptions1
+        PQconnectStart -> connectOptions2
+        PQconnectStart -> connectDBStart
+
+        PQsetdbLogin -> connectOptions1
+        PQsetdbLogin -> connectOptions2
+        PQsetdbLogin -> connectDBStart
+
+        PQconninfoParse -> parse_connection_string
+        PQconndefaults -> conninfo_init
+        PQconndefaults -> conninfo_add_defaults
+
+        fillPGconn
+
+        connectOptions1 -> parse_connection_string
+        connectOptions1 -> fillPGconn
+
+        connectOptions2 -> pg_fe_getauthname
+
+        parse_connection_string -> conninfo_uri_parse
+        parse_connection_string -> conninfo_parse
+
+        conninfo_uri_parse -> conninfo_init
+        conninfo_uri_parse -> conninfo_uri_parse_options
+        conninfo_uri_parse -> conninfo_add_defaults
+
+        conninfo_array_parse -> parse_connection_string
+        conninfo_array_parse -> conninfo_init
+        conninfo_array_parse -> conninfo_add_defaults
+
+        conninfo_add_defaults -> parseServiceInfo -> parseServiceFile
+        conninfo_add_defaults -> assign_from_env
+        conninfo_add_defaults -> pg_fe_getauthname
+}
